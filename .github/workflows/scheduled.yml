@@ -1,5 +1,4 @@
 name: Daily Script
-
 on:
   schedule:
     # ╔═══════════════════════════════════════════════════════════════╗
@@ -15,14 +14,15 @@ on:
     # ║  Use https://time.is/UTC to find your local time in UTC       ║
     # ╚═══════════════════════════════════════════════════════════════╝
     - cron: '0 1 * * *'
-
   # This adds a "Run workflow" button so you can test manually
   workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,10 +37,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check required secrets
+        run: |
+          MISSING=0
+          for var in OWM_API_KEY ACCOUNT_SID AUTH_TOKEN MSG_SERVICE_ID PHONE_NO; do
+            if [ -z "${!var}" ]; then
+              echo "❌ $var secret is not set! Go to Settings > Secrets > Actions and add it."
+              MISSING=1
+            fi
+          done
+          if [ $MISSING -eq 1 ]; then
+            exit 1
+          fi
+        env:
+          OWM_API_KEY: ${{ secrets.OWM_API_KEY }}
+          ACCOUNT_SID: ${{ secrets.ACCOUNT_SID }}
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+          MSG_SERVICE_ID: ${{ secrets.MSG_SERVICE_ID }}
+          PHONE_NO: ${{ secrets.PHONE_NO }}
+
       - name: Run script
         env:
-          # Your secrets are available as environment variables
-          # Add more secrets in Settings > Secrets > Actions
-          MY_EMAIL: ${{ secrets.MY_EMAIL }}
-          MY_PASSWORD: ${{ secrets.MY_PASSWORD }}
+          OWM_API_KEY: ${{ secrets.OWM_API_KEY }}
+          ACCOUNT_SID: ${{ secrets.ACCOUNT_SID }}
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+          MSG_SERVICE_ID: ${{ secrets.MSG_SERVICE_ID }}
+          PHONE_NO: ${{ secrets.PHONE_NO }}
         run: python main.py
