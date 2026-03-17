@@ -31,7 +31,6 @@ if will_rain:
     message = client.messages.create(
         messaging_service_sid = os.environ.get("MSG_SERVICE_ID"),
         body = 'Bring an Umbrella ☔',
-        from_= os.environ.get("PHONE_NO"),
         to = os.environ.get("PHONE_NO")
     )
     print(message.status)
